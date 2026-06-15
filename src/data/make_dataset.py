@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import h3
+from fetch_external_data import enrich_with_external_variables
 
 def generate_mock_london_data(num_records=5000):
     # Core London Coordinates (approx Trafalgar Square centroid)
@@ -21,6 +22,10 @@ def generate_mock_london_data(num_records=5000):
     
     # Map coordinates to Uber H3 Hexagons (Resolution 8 ~ 700m wide)
     df['h3_geo'] = df.apply(lambda row: h3.geo_to_h3(row['lat'], row['lng'], resolution=8), axis=1)
+    
+    # Introduce real-world systemic variance from external APIs
+    df = enrich_with_external_variables(df)
+    
     return df
 
 if __name__ == "__main__":
