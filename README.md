@@ -2,7 +2,7 @@
 
 An end-to-end spatial-temporal machine learning pipeline that forecasts micro-neighborhood ride-hailing demand 1 to 2 hours in advance. By integrating multi-stream edge-inference over live public transit metrics and real-time Transport for London (TfL) CCTV feeds, this engine replaces reactive vehicle routing with proactive fleet allocation, directly addressing driver idle overhead and supply-demand mismatches.
 
-## 🚀 Core Architectural Pillars
+## Core Architectural Pillars
 
 ### 1. Computer Vision & Exogenous Feature Ingestion Loop
 Traditional forecasting engines rely exclusively on historical demand lags, failing to anticipate real-time event anomalies. This engine handles high-frequency data streams natively:
