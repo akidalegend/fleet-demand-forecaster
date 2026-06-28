@@ -147,7 +147,7 @@ class LondonRealTimeFeeds:
         for cam in camera_registry:
             print(f"Processing YOLOv8 pedestrian count for: {cam['camera_id']}")
             pedestrians = self.extract_pedestrian_density(cam['video_url'])
-            h3_index = h3.geo_to_h3(cam['lat'], cam['lng'], resolution=8)
+            h3_index = h3.latlng_to_cell(cam['lat'], cam['lng'], res=8)
             
             # Proxy calculation: Simulate immediate fleet transaction volume proportional to pedestrian presence
             mock_live_demand = int(np.random.poisson(lam=pedestrians * 0.2 + 2))

@@ -71,8 +71,7 @@ def generate_mock_london_data(num_records=10000):
     })
     
     # Discretize locations into H3 resolution 8 cells
-    df['h3_geo'] = df.apply(lambda row: h3.geo_to_h3(row['lat'], row['lng'], resolution=8), axis=1)
-    
+    df['h3_geo'] = df.apply(lambda row: h3.latlng_to_cell(row['lat'], row['lng'], res=8), axis=1)    
     # To hydrate our historical training dataset with realistic exogenous metrics,
     # add synthetic metrics matched to the generated temporal structure
     df['time_bucket'] = df['timestamp'].dt.floor('15min')

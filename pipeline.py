@@ -19,7 +19,10 @@ def run_production_pipeline(mode="train"):
     print(f"=== Initializing Fleet Demand Engine [Mode: {mode.upper()}] ===")
     
     # Core features matching historical structural patterns
-    historical_features = ['hour', 'day_of_week', 'lag_1', 'lag_4']
+    historical_features = [
+        'hour', 'day_of_week', 'temporal_lag_1', 'temporal_lag_4',
+        'spatial_lag_1', 'precipitation_mm', 'temperature_2m', 'is_tube_strike'
+    ]
     
     if mode == "train":
         print("\n[Step 1/3] Generating historical baseline data partitions...")

@@ -28,7 +28,7 @@ def train_and_evaluate(demand_df, features, target='demand_count', n_splits=3):
         X_test, y_test = test_df[features], test_df[target]
         
         # Evaluate Naive Baseline
-        naive_predictions = test_df['lag_1']
+        naive_predictions = test_df['temporal_lag_1']
         naive_mape = np.mean(np.abs((y_test - naive_predictions) / np.maximum(y_test, 1))) * 100
         
         # Train LightGBM Challenger

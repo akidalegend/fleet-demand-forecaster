@@ -32,26 +32,39 @@ def create_spatiotemporal_features(raw_data):
     # Establish Domain Competence: Spatial Lags (Demand in adjacent hexagons during the same time threshold)
     # This reflects ride-hailing/fleet network effects (supply bleeding from adjacent zones)
     def compute_spatial_lag(df):
-        # Create a mapping of (time_bucket, h3_geo) -> demand_count for quick lookup
-        demand_map = df.set_index(['time_bucket', 'h3_geo'])['demand_count'].to_dict()
-        spatial_lags = []
-        
-        for idx, row in df.iterrows():
-            tb = row['time_bucket']
-            hex_id = row['h3_geo']
-            
-            try:
-                # Get immediate geographic neighbors (k=1)
-                neighbors = h3.k_ring(hex_id, 1)
-                # Ensure we exclude the center hex itself from the 'neighbors' aggregate
-                neighbors.discard(hex_id)
-                # Sum the demand from all neighboring hexagons at the exact same time bucket
-                neighbor_demand = sum(demand_map.get((tb, n), 0) for n in neighbors)
-                spatial_lags.append(neighbor_demand)
-            except Exception:
-                spatial_lags.append(0)
-                
-        return spatial_lags
+        unique_hexes = df['h3_geo'].drop_duplicates()
+
+        neighbor_df = pd.DataFrame({
+            'h3_geo': unique_hexes,
+            'neighbor_h3_geo': [
+                [neighbor for neighbor in h3.k_ring(hex_id, 1) if neighbor != hex_id]
+                if pd.notna(hex_id) else []
+                for hex_id in unique_hexes
+            ]
+        }).explode('neighbor_h3_geo', ignore_index=True)
+
+        if neighbor_df.empty:
+            return pd.Series(0, index=df.index)
+
+        base_df = df[['time_bucket', 'h3_geo']].merge(neighbor_df, on='h3_geo', how='left')
+
+        demand_lookup = df[['time_bucket', 'h3_geo', 'demand_count']].rename(
+            columns={'h3_geo': 'neighbor_h3_geo', 'demand_count': 'neighbor_demand'}
+        )
+
+        spatial_lag_df = (
+            base_df
+            .merge(demand_lookup, on=['time_bucket', 'neighbor_h3_geo'], how='left')
+            .groupby(['time_bucket', 'h3_geo'], as_index=False)['neighbor_demand']
+            .sum()
+            .rename(columns={'neighbor_demand': 'spatial_lag_1'})
+        )
+
+        return df[['time_bucket', 'h3_geo']].merge(
+            spatial_lag_df,
+            on=['time_bucket', 'h3_geo'],
+            how='left'
+        )['spatial_lag_1'].fillna(0)
 
     demand_df['spatial_lag_1'] = compute_spatial_lag(demand_df)
     
